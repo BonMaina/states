@@ -8,23 +8,32 @@ const mongoose = require('mongoose');
 const onnectDB = require('./config/database');
 const { connect } = require('http2');
 const connectDB = require('./config/database');
+const credentials = require('./middleware/credentials');
 
 connectDB();
-// Database connection
-require('./config/database');
+
+app.use(credentials);
 
 // Body parser middleware to handle JSON data
 app.use(express.json());
+
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
+    next();
+});
 
 app.use(express.static(path.join(__dirname, '/public')));
 
 app.use('/states', require('./routes/states'));
 
 
-app.get('^/$|index(.html)?', (req, res) => {
-    // res.sendFile('./views/index.html', { root:_});
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'index.html'));
-})
+});
+app.use('/', require('./routes/root'));
+
 app.get('^/$|states(.json)?', (req, res) => {
     // res.sendFile('./views/index.html', { root:_});
     res.sendFile(path.join(__dirname, 'data', 'statesData.json'));
